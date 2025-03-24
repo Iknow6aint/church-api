@@ -29,8 +29,18 @@ export interface IContactService {
   getFirstTimers(): Promise<any[]>;
 
   getContactsByEvangelist(evangelistName: string): Promise<any[]>;
-}
 
+  searchContacts(query: string): Promise<any[]>;
+
+  filterContacts(filters: {
+    gender?: string;
+    evangelist?: string;
+    dateRange?: {
+      start: string;
+      end: string;
+    };
+  }): Promise<any[]>;
+}
 
 export interface IAttendanceService {
   markAttendance(data: any): Promise<AttendanceDocument>;

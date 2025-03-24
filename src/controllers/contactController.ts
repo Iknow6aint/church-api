@@ -126,6 +126,39 @@ export class ContactController {
       res.status(500).json({ error: 'An unexpected error occurred' });
     }
   }
+
+  async searchContacts(req: Request<{}, {}, { query: string }>, res: Response): Promise<void> {
+    try {
+      const contacts = await this.contactService.searchContacts(req.body.query);
+      res.json(contacts);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      res.status(500).json({ error: 'An unexpected error occurred' });
+    }
+  }
+
+  async filterContacts(req: Request<{}, {}, { 
+    gender?: string;
+    evangelist?: string;
+    dateRange?: {
+      start: string;
+      end: string;
+    }
+  }>, res: Response): Promise<void> {
+    try {
+      const contacts = await this.contactService.filterContacts(req.body);
+      res.json(contacts);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      res.status(500).json({ error: 'An unexpected error occurred' });
+    }
+  }
 }
 
 export const contactController = new ContactController(contactService);
