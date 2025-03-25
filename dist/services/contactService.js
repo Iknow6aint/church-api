@@ -21,8 +21,8 @@ class ContactService {
      * @throws {Error} If there's a validation error or unexpected error
      */
     async createContact(contactData) {
+        const contact = new this.contactModel(contactData);
         try {
-            const contact = new this.contactModel(contactData);
             return await contact.save();
         }
         catch (error) {

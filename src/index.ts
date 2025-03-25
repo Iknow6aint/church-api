@@ -48,8 +48,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/api/contacts', contactRoutes);
-app.use('/api/attendance', attendanceRoutes);
+app.use('/contacts', contactRoutes);
+app.use('/attendance', attendanceRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

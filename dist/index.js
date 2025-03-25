@@ -45,8 +45,8 @@ mongoose_1.default.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.specs));
 // Routes
 app.use('/auth', authRoutes_1.default);
-app.use('/api/contacts', contactRoutes_1.default);
-app.use('/api/attendance', attendanceRoutes_1.default);
+app.use('/contacts', contactRoutes_1.default);
+app.use('/attendance', attendanceRoutes_1.default);
 // Error handling middleware
 app.use((err, req, res, next) => {
     winston_1.default.error('Uncaught error', {
