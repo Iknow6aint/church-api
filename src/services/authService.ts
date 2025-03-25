@@ -1,5 +1,5 @@
 /**
- * @fileoverview Authentication service with logging
+ * @fileoverview Authentication service with custom error handling
  * @module services/authService
  */
 
@@ -8,6 +8,13 @@ import { Admin } from '../models/Admin';
 import { TokenPayload, TokenIntrospection, AdminData } from '../types';
 import logger from '../config/winston';
 import bcrypt from 'bcryptjs';
+import { 
+  AdminExistsError, 
+  AdminNotFoundError, 
+  InvalidCredentialsError, 
+  InvalidTokenError, 
+  PasswordMismatchError 
+} from '../errors/authError';
 
 /**
  * Interface representing an admin model
@@ -55,7 +62,7 @@ export class AuthService {
       const existingAdmin = await this.adminModel.findOne({ email: adminData.email });
       if (existingAdmin) {
         logger.warn('Admin signup failed - email already exists', { email: adminData.email });
-        throw new Error('Email already exists');
+        throw new AdminExistsError(adminData.email);
       }
 
       // Hash password
@@ -102,13 +109,13 @@ export class AuthService {
       const admin = await this.adminModel.findOne({ email }).select('+password_hash');
       if (!admin) {
         logger.warn('Admin signin failed - email not found', { email });
-        throw new Error('Invalid credentials');
+        throw new InvalidCredentialsError();
       }
 
       const isValidPassword = await admin.comparePassword(password);
       if (!isValidPassword) {
         logger.warn('Admin signin failed - invalid password', { email });
-        throw new Error('Invalid credentials');
+        throw new InvalidCredentialsError();
       }
 
       logger.info('Admin signin successful', { adminId: admin._id });
@@ -147,13 +154,13 @@ export class AuthService {
       const admin = await this.adminModel.findById(adminId).select('+password_hash');
       if (!admin) {
         logger.warn('Password change failed - admin not found', { adminId });
-        throw new Error('Admin not found');
+        throw new AdminNotFoundError(adminId);
       }
 
       const isValidPassword = await admin.comparePassword(currentPassword);
       if (!isValidPassword) {
         logger.warn('Password change failed - invalid current password', { adminId });
-        throw new Error('Invalid current password');
+        throw new PasswordMismatchError();
       }
 
       // Hash new password
@@ -192,7 +199,7 @@ export class AuthService {
       const admin = await this.adminModel.findById(decoded.adminId);
       if (!admin) {
         logger.warn('Token introspection failed - admin not found', { adminId: decoded.adminId });
-        throw new Error('Admin not found');
+        throw new InvalidTokenError();
       }
 
       logger.info('Token introspection successful', { adminId: admin._id });

@@ -1,23 +1,23 @@
 /**
- * @fileoverview Authentication controller with logging
+ * @fileoverview Authentication controller with custom error handling
  * @module controllers/authController
  */
 
 import { Request, Response } from 'express';
 import { AdminRequest } from '../types';
-import { AuthService } from '../services/authService';
 import { authService } from '../services/authService';
 import logger from '../config/winston';
+import { BaseError } from '../errors/baseError';
 
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor() {}
 
   async signup(req: Request, res: Response): Promise<void> {
     try {
       const { name, email, password } = req.body;
       logger.info('Signup attempt', { email });
       
-      const result = await this.authService.signup({
+      const result = await authService.signup({
         name,
         email,
         password
@@ -26,12 +26,21 @@ export class AuthController {
       logger.info('Signup successful', { email });
       res.status(201).json(result);
     } catch (error) {
-      logger.error('Signup failed', { error: error instanceof Error ? error.message : 'Unknown error' });
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
+      logger.error('Signup failed', { 
+        email: req.body.email,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      if (error instanceof BaseError) {
+        res.status(error.statusCode).json(error.toJSON());
         return;
       }
-      res.status(500).json({ error: 'An unexpected error occurred' });
+      
+      res.status(500).json({ 
+        status: 'error',
+        code: 500,
+        message: 'An unexpected error occurred'
+      });
     }
   }
 
@@ -40,17 +49,26 @@ export class AuthController {
       const { email } = req.body;
       logger.info('Signin attempt', { email });
       
-      const result = await this.authService.signin(email, req.body.password);
+      const result = await authService.signin(email, req.body.password);
       
-      logger.info('Signin successful', { email});
+      logger.info('Signin successful', { email });
       res.json(result);
     } catch (error) {
-      logger.error('Signin failed', { error: error instanceof Error ? error.message : 'Unknown error' });
-      if (error instanceof Error) {
-        res.status(401).json({ error: error.message });
+      logger.error('Signin failed', { 
+        email: req.body.email,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      if (error instanceof BaseError) {
+        res.status(error.statusCode).json(error.toJSON());
         return;
       }
-      res.status(500).json({ error: 'An unexpected error occurred' });
+      
+      res.status(500).json({ 
+        status: 'error',
+        code: 500,
+        message: 'An unexpected error occurred'
+      });
     }
   }
 
@@ -61,13 +79,17 @@ export class AuthController {
       
       if (!adminId) {
         logger.warn('Unauthorized password change attempt');
-        res.status(401).json({ error: 'Unauthorized' });
+        res.status(401).json({ 
+          status: 'error',
+          code: 401,
+          message: 'Unauthorized'
+        });
         return;
       }
       
       logger.info('Password change attempt', { adminId });
       
-      const result = await this.authService.changePassword(
+      const result = await authService.changePassword(
         adminId,
         currentPassword,
         newPassword
@@ -80,11 +102,17 @@ export class AuthController {
         adminId: req.admin?.adminId,
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
+      
+      if (error instanceof BaseError) {
+        res.status(error.statusCode).json(error.toJSON());
         return;
       }
-      res.status(500).json({ error: 'An unexpected error occurred' });
+      
+      res.status(500).json({ 
+        status: 'error',
+        code: 500,
+        message: 'An unexpected error occurred'
+      });
     }
   }
 
@@ -94,29 +122,36 @@ export class AuthController {
       
       if (!token) {
         logger.warn('Token validation attempt with missing token');
-        res.status(400).json({ error: 'Token is required' });
+        res.status(400).json({ 
+          status: 'error',
+          code: 400,
+          message: 'Token is required'
+        });
         return;
       }
 
       logger.info('Token validation attempt');
-      const result = await this.authService.introspectToken(token);
+      const result = await authService.introspectToken(token);
       
-      logger.info('Token validation successful', { 
-        admin_id: result.admin_id,
-        exp: result.exp
-      });
+      logger.info('Token validation successful');
       res.json(result);
     } catch (error) {
       logger.error('Token validation failed', { 
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
+      
+      if (error instanceof BaseError) {
+        res.status(error.statusCode).json(error.toJSON());
         return;
       }
-      res.status(500).json({ error: 'An unexpected error occurred' });
+      
+      res.status(500).json({ 
+        status: 'error',
+        code: 500,
+        message: 'An unexpected error occurred'
+      });
     }
   }
 }
 
-export const authController = new AuthController(authService);
+export const authController = new AuthController();

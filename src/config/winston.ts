@@ -28,14 +28,11 @@ const logger = winston.createLogger({
       zippedArchive: true,
       maxSize: '20m',
       maxFiles: '14d'
-    })
+    }),
+    // Exception handler transport
+    new winston.transports.File({ filename: 'logs/exceptions.log' })
   ]
 });
-
-// Add error handling
-logger.exceptions.handle([
-  new winston.transports.File({ filename: 'logs/exceptions.log' })
-]);
 
 // Add uncaught exception handling
 process.on('uncaughtException', (ex) => {

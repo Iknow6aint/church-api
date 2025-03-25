@@ -10,11 +10,8 @@ import {
 import { IAttendanceService } from '../types/services';
 
 export class AttendanceController {
-  private attendanceService: IAttendanceService;
 
-  constructor(attendanceService: IAttendanceService) {
-    this.attendanceService = attendanceService;
-  }
+  
 
   async markAttendance(req: Request<{}, {}, MarkAttendanceRequest>, res: Response): Promise<void> {
     try {
@@ -23,9 +20,9 @@ export class AttendanceController {
         res.status(400).json({ error: 'Missing required fields' });
         return;
       }
-      const attendance = await this.attendanceService.markAttendance({
+      const attendance = await attendanceService.markAttendance({
         contactId,
-        date,
+        date: new Date(date),
         attended,
         markedBy
       });
@@ -46,8 +43,8 @@ export class AttendanceController {
         res.status(400).json({ error: 'Date is required' });
         return;
       }
-      const attendance = await this.attendanceService.getAttendanceByDate({
-        date
+      const attendance = await attendanceService.getAttendanceByDate({
+        date: new Date(date)
       });
       res.json(attendance);
     } catch (error) {
@@ -66,7 +63,7 @@ export class AttendanceController {
         res.status(400).json({ error: 'Contact ID is required' });
         return;
       }
-      const attendance = await this.attendanceService.getAttendanceByContact({
+      const attendance = await attendanceService.getAttendanceByContact({
         contactId
       });
       res.json(attendance);
@@ -86,7 +83,7 @@ export class AttendanceController {
         res.status(400).json({ error: 'ID is required' });
         return;
       }
-      await this.attendanceService.deleteAttendance({
+      await attendanceService.deleteAttendance({
         id
       });
       res.json({ message: 'Attendance record deleted successfully' });
@@ -106,8 +103,8 @@ export class AttendanceController {
         res.status(400).json({ error: 'Date is required' });
         return;
       }
-      const stats = await this.attendanceService.getAttendanceStats({
-        date
+      const stats = await attendanceService.getAttendanceStats({
+        date: new Date(date)
       });
       res.json(stats);
     } catch (error) {
@@ -120,4 +117,4 @@ export class AttendanceController {
   }
 }
 
-export const attendanceController = new AttendanceController(attendanceService);
+export const attendanceController = new AttendanceController();

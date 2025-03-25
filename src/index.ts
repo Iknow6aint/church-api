@@ -1,5 +1,5 @@
 /**
- * @fileoverview Main application file with logging
+ * @fileoverview Main application file with custom error handling
  * @module index
  */
 
@@ -12,6 +12,7 @@ import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './config/swagger';
 import logger from './config/winston';
+import { BaseError } from './errors/baseError';
 
 import authRoutes from './routes/authRoutes';
 import contactRoutes from './routes/contactRoutes';
@@ -46,7 +47,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/church-ap
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/attendance', attendanceRoutes);
 
@@ -60,8 +61,16 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     body: req.body
   });
   
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something broke!' });
+  if (err instanceof BaseError) {
+    res.status(err.statusCode).json(err.toJSON());
+    return;
+  }
+
+  res.status(500).json({ 
+    status: 'error',
+    code: 500,
+    message: 'An unexpected error occurred'
+  });
 });
 
 const PORT = process.env.PORT || 3000;
