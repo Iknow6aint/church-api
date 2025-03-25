@@ -6,7 +6,6 @@ export interface IAdmin extends Document {
   email: string;
   password_hash: string;
   created_at: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const adminSchema = new Schema({
@@ -32,18 +31,5 @@ const adminSchema = new Schema({
     default: Date.now
   }
 });
-
-// Hash password before saving
-adminSchema.pre('save', async function(next) {
-  if (!this.isModified('password_hash')) return next();
-  
-  this.password_hash = await bcrypt.hash(this.password_hash, 10);
-  next();
-});
-
-// Method to compare password
-adminSchema.methods.comparePassword = async function(candidatePassword: string) {
-  return bcrypt.compare(candidatePassword, this.password_hash);
-};
 
 export const Admin = mongoose.model<IAdmin>('Admin', adminSchema);

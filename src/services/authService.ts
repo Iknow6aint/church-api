@@ -23,14 +23,12 @@ import {
  * @property {string} name - Admin's full name
  * @property {string} email - Admin's email address
  * @property {string} password_hash - Hashed password
- * @method comparePassword - Compares a password with the stored hash
  */
 interface AdminModel {
   _id: string;
   name: string;
   email: string;
   password_hash: string;
-  comparePassword(password: string): Promise<boolean>;
 }
 
 /**
@@ -65,17 +63,16 @@ export class AuthService {
         throw new AdminExistsError(adminData.email);
       }
 
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(adminData.password, salt);
-
       // Create new admin
       const admin = new this.adminModel({
         name: adminData.name,
         email: adminData.email,
-        password_hash: hashedPassword
+        password_hash: adminData.password // Store raw password temporarily
       });
 
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      admin.password_hash = await bcrypt.hash(admin.password_hash, salt);
       const savedAdmin = await admin.save();
       logger.info('Admin created successfully', { adminId: savedAdmin._id });
 
@@ -112,7 +109,8 @@ export class AuthService {
         throw new InvalidCredentialsError();
       }
 
-      const isValidPassword = await admin.comparePassword(password);
+      // Compare password
+      const isValidPassword = await bcrypt.compare(password, admin.password_hash);
       if (!isValidPassword) {
         logger.warn('Admin signin failed - invalid password', { email });
         throw new InvalidCredentialsError();
@@ -157,7 +155,7 @@ export class AuthService {
         throw new AdminNotFoundError(adminId);
       }
 
-      const isValidPassword = await admin.comparePassword(currentPassword);
+      const isValidPassword = await bcrypt.compare(currentPassword, admin.password_hash);
       if (!isValidPassword) {
         logger.warn('Password change failed - invalid current password', { adminId });
         throw new PasswordMismatchError();

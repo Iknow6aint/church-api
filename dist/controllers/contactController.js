@@ -3,13 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.contactController = exports.ContactController = void 0;
 const contactService_1 = require("../services/contactService");
 class ContactController {
-    constructor(contactService) {
-        this.contactService = contactService;
-    }
     async createContact(req, res) {
         try {
             const { first_visit_date, ...rest } = req.body;
-            const contact = await this.contactService.createContact({
+            const contact = await contactService_1.contactService.createContact({
                 ...rest,
                 first_visit_date: new Date(first_visit_date)
             });
@@ -25,7 +22,7 @@ class ContactController {
     }
     async getContactById(req, res) {
         try {
-            const contact = await this.contactService.getContactById(req.params.id);
+            const contact = await contactService_1.contactService.getContactById(req.params.id);
             if (!contact) {
                 res.status(404).json({ error: 'Contact not found' });
                 return;
@@ -42,7 +39,7 @@ class ContactController {
     }
     async getAllContacts(req, res) {
         try {
-            const contacts = await this.contactService.getAllContacts();
+            const contacts = await contactService_1.contactService.getAllContacts();
             res.json(contacts);
         }
         catch (error) {
@@ -60,7 +57,7 @@ class ContactController {
                 ...rest,
                 ...(first_visit_date && { first_visit_date: new Date(first_visit_date) })
             };
-            const contact = await this.contactService.updateContact(req.params.id, updateData);
+            const contact = await contactService_1.contactService.updateContact(req.params.id, updateData);
             if (!contact) {
                 res.status(404).json({ error: 'Contact not found' });
                 return;
@@ -77,7 +74,7 @@ class ContactController {
     }
     async deleteContact(req, res) {
         try {
-            const contact = await this.contactService.deleteContact(req.params.id);
+            const contact = await contactService_1.contactService.deleteContact(req.params.id);
             if (!contact) {
                 res.status(404).json({ error: 'Contact not found' });
                 return;
@@ -94,7 +91,7 @@ class ContactController {
     }
     async getFirstTimers(req, res) {
         try {
-            const contacts = await this.contactService.getFirstTimers();
+            const contacts = await contactService_1.contactService.getFirstTimers();
             res.json(contacts);
         }
         catch (error) {
@@ -107,7 +104,7 @@ class ContactController {
     }
     async getContactsByEvangelist(req, res) {
         try {
-            const contacts = await this.contactService.getContactsByEvangelist(req.params.evangelistName);
+            const contacts = await contactService_1.contactService.getContactsByEvangelist(req.params.evangelistName);
             res.json(contacts);
         }
         catch (error) {
@@ -120,7 +117,7 @@ class ContactController {
     }
     async searchContacts(req, res) {
         try {
-            const contacts = await this.contactService.searchContacts(req.body.query);
+            const contacts = await contactService_1.contactService.searchContacts(req.body.query);
             res.json(contacts);
         }
         catch (error) {
@@ -133,7 +130,7 @@ class ContactController {
     }
     async filterContacts(req, res) {
         try {
-            const contacts = await this.contactService.filterContacts(req.body);
+            const contacts = await contactService_1.contactService.filterContacts(req.body);
             res.json(contacts);
         }
         catch (error) {
@@ -146,4 +143,4 @@ class ContactController {
     }
 }
 exports.ContactController = ContactController;
-exports.contactController = new ContactController(contactService_1.contactService);
+exports.contactController = new ContactController();

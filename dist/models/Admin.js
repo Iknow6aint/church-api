@@ -32,13 +32,9 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Admin = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const adminSchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -62,15 +58,4 @@ const adminSchema = new mongoose_1.Schema({
         default: Date.now
     }
 });
-// Hash password before saving
-adminSchema.pre('save', async function (next) {
-    if (!this.isModified('password_hash'))
-        return next();
-    this.password_hash = await bcryptjs_1.default.hash(this.password_hash, 10);
-    next();
-});
-// Method to compare password
-adminSchema.methods.comparePassword = async function (candidatePassword) {
-    return bcryptjs_1.default.compare(candidatePassword, this.password_hash);
-};
 exports.Admin = mongoose_1.default.model('Admin', adminSchema);

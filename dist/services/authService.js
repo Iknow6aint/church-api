@@ -40,15 +40,15 @@ class AuthService {
                 winston_1.default.warn('Admin signup failed - email already exists', { email: adminData.email });
                 throw new authError_1.AdminExistsError(adminData.email);
             }
-            // Hash password
-            const salt = await bcryptjs_1.default.genSalt(10);
-            const hashedPassword = await bcryptjs_1.default.hash(adminData.password, salt);
             // Create new admin
             const admin = new this.adminModel({
                 name: adminData.name,
                 email: adminData.email,
-                password_hash: hashedPassword
+                password_hash: adminData.password // Store raw password temporarily
             });
+            // Hash password
+            const salt = await bcryptjs_1.default.genSalt(10);
+            admin.password_hash = await bcryptjs_1.default.hash(admin.password_hash, salt);
             const savedAdmin = await admin.save();
             winston_1.default.info('Admin created successfully', { adminId: savedAdmin._id });
             // Generate token
@@ -81,7 +81,8 @@ class AuthService {
                 winston_1.default.warn('Admin signin failed - email not found', { email });
                 throw new authError_1.InvalidCredentialsError();
             }
-            const isValidPassword = await admin.comparePassword(password);
+            // Compare password
+            const isValidPassword = await bcryptjs_1.default.compare(password, admin.password_hash);
             if (!isValidPassword) {
                 winston_1.default.warn('Admin signin failed - invalid password', { email });
                 throw new authError_1.InvalidCredentialsError();
@@ -117,7 +118,7 @@ class AuthService {
                 winston_1.default.warn('Password change failed - admin not found', { adminId });
                 throw new authError_1.AdminNotFoundError(adminId);
             }
-            const isValidPassword = await admin.comparePassword(currentPassword);
+            const isValidPassword = await bcryptjs_1.default.compare(currentPassword, admin.password_hash);
             if (!isValidPassword) {
                 winston_1.default.warn('Password change failed - invalid current password', { adminId });
                 throw new authError_1.PasswordMismatchError();
