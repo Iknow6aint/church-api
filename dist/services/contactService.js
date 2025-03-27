@@ -6,6 +6,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.contactService = exports.ContactService = void 0;
 const Contact_1 = require("../models/Contact");
+const Attendance_1 = require("../models/Attendance");
 /**
  * Service class for managing church contacts
  * @class
@@ -40,7 +41,16 @@ class ContactService {
      */
     async getContactById(id) {
         try {
-            return await this.contactModel.findById(id);
+            const contact = await this.contactModel.findById(id);
+            if (!contact) {
+                return null;
+            }
+            // Fetch all attendance records for this contact
+            const attendanceRecords = await Attendance_1.Attendance.find({ contact_id: id })
+                .sort({ date: -1 });
+            // Add attendance records to the contact object
+            contact.attendance = attendanceRecords;
+            return contact;
         }
         catch (error) {
             if (error.name === 'CastError') {

@@ -1,4 +1,5 @@
 import { Schema, model, Document } from 'mongoose';
+import { AttendanceDocument } from './Attendance';
 
 interface ContactDocument extends Document {
   name: string;
@@ -12,6 +13,7 @@ interface ContactDocument extends Document {
   attendance_count: number;
   last_attendance: any;
   isFirstTimer: boolean;
+  attendance: AttendanceDocument[];
 }
 
 const contactSchema = new Schema({
@@ -57,6 +59,11 @@ contactSchema.virtual('isFirstTimer').get(function(this: ContactDocument) {
   return this.first_visit_date >= oneMonthAgo;
 });
 
+contactSchema.virtual('attendance', {
+  ref: 'Attendance',
+  localField: '_id',
+  foreignField: 'contactId'
+});
 
 const Contact = model<ContactDocument>('Contact', contactSchema);
 

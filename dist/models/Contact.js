@@ -40,5 +40,10 @@ contactSchema.virtual('isFirstTimer').get(function () {
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     return this.first_visit_date >= oneMonthAgo;
 });
+contactSchema.virtual('attendance', {
+    ref: 'Attendance',
+    localField: '_id',
+    foreignField: 'contactId'
+});
 const Contact = (0, mongoose_1.model)('Contact', contactSchema);
 exports.Contact = Contact;

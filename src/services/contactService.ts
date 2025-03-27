@@ -5,6 +5,7 @@
 
 import { Contact, ContactDocument } from '../models/Contact';
 import { CreateContactInput, UpdateContactInput } from '../types/contact';
+import { Attendance } from '../models/Attendance';
 
 /**
  * Interface for creating a new contact
@@ -77,7 +78,19 @@ export class ContactService {
    */
   async getContactById(id: string): Promise<ContactDocument | null> {
     try {
-      return await this.contactModel.findById(id);
+      const contact = await this.contactModel.findById(id);
+      if (!contact) {
+        return null;
+      }
+
+      // Fetch all attendance records for this contact
+      const attendanceRecords = await Attendance.find({ contact_id: id })
+        .sort({ date: -1 });
+
+      // Add attendance records to the contact object
+      contact.attendance = attendanceRecords;
+      
+      return contact;
     } catch (error: any) {
       if (error.name === 'CastError') {
         throw error;
