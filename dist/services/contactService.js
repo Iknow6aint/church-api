@@ -204,6 +204,132 @@ class ContactService {
             throw new Error('An unexpected error occurred');
         }
     }
+    /**
+     * Get complete dashboard analytics data
+     * @returns Dashboard analytics data
+     */
+    async getDashboardAnalytics() {
+        // Calculate current date and dates for 5 weeks ago
+        const currentDate = new Date();
+        const fiveWeeksAgo = new Date();
+        fiveWeeksAgo.setDate(currentDate.getDate() - 35); // 5 weeks * 7 days
+        // Get total contacts count
+        const totalContacts = await Contact_1.Contact.countDocuments();
+        // Get contacts who attended at least once
+        const contactsAttendedAtLeastOnce = await Attendance_1.Attendance.distinct('contact_id');
+        const attendedAtLeastOnceCount = contactsAttendedAtLeastOnce.length;
+        // Get contacts who are still attending (attended in the last 5 weeks)
+        const recentAttendees = await Attendance_1.Attendance.distinct('contact_id', {
+            date: { $gte: fiveWeeksAgo }
+        });
+        const stillAttendingCount = recentAttendees.length;
+        // Gender distribution
+        const maleCount = await Contact_1.Contact.countDocuments({ gender: 'male' });
+        const femaleCount = await Contact_1.Contact.countDocuments({ gender: 'female' });
+        // Weekly attendance trend (last 10 weeks)
+        const weeklyAttendanceTrend = await this.getWeeklyAttendanceTrend(10);
+        // 5-week retention breakdown
+        const retentionBreakdown = await this.getRetentionBreakdown(5);
+        // Compile all data
+        return {
+            totalContacts,
+            attendedAtLeastOnce: {
+                count: attendedAtLeastOnceCount,
+                percentage: totalContacts > 0 ? (attendedAtLeastOnceCount / totalContacts) * 100 : 0
+            },
+            stillAttending: {
+                count: stillAttendingCount,
+                percentage: totalContacts > 0 ? (stillAttendingCount / totalContacts) * 100 : 0
+            },
+            weeklyAttendanceTrend,
+            genderDistribution: {
+                male: {
+                    count: maleCount,
+                    percentage: totalContacts > 0 ? (maleCount / totalContacts) * 100 : 0
+                },
+                female: {
+                    count: femaleCount,
+                    percentage: totalContacts > 0 ? (femaleCount / totalContacts) * 100 : 0
+                }
+            },
+            retentionBreakdown
+        };
+    }
+    /**
+     * Get weekly attendance trend for the specified number of weeks
+     * @param weekCount - Number of weeks to analyze
+     * @returns Weekly attendance data
+     */
+    async getWeeklyAttendanceTrend(weekCount) {
+        const result = [];
+        const currentDate = new Date();
+        for (let i = weekCount - 1; i >= 0; i--) {
+            // Calculate start and end of the week
+            const weekStart = new Date();
+            weekStart.setDate(currentDate.getDate() - (i * 7) - 6);
+            weekStart.setHours(0, 0, 0, 0);
+            const weekEnd = new Date();
+            weekEnd.setDate(currentDate.getDate() - (i * 7));
+            weekEnd.setHours(23, 59, 59, 999);
+            // Count attendances in this week
+            const weeklyCount = await Attendance_1.Attendance.countDocuments({
+                date: { $gte: weekStart, $lte: weekEnd },
+                attended: true
+            });
+            result.push({
+                week: weekCount - i,
+                count: weeklyCount
+            });
+        }
+        return result;
+    }
+    /**
+     * Get retention breakdown for the specified number of weeks
+     * @param weeks - Number of weeks to analyze for retention
+     * @returns Retention breakdown data
+     */
+    async getRetentionBreakdown(weeks) {
+        // Define the date ranges
+        const currentDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(currentDate.getDate() - (weeks * 7));
+        // Find contacts who attended at least once in the first week of the period
+        const periodStart = new Date(startDate);
+        const periodFirstWeekEnd = new Date(startDate);
+        periodFirstWeekEnd.setDate(periodStart.getDate() + 7);
+        // Get contacts who attended in the first week of the period
+        const firstWeekAttendees = await Attendance_1.Attendance.distinct('contact_id', {
+            date: { $gte: periodStart, $lt: periodFirstWeekEnd },
+            attended: true
+        });
+        if (firstWeekAttendees.length === 0) {
+            return {
+                stillAttending: { count: 0, percentage: 0 },
+                dropOut: { count: 0, percentage: 0 }
+            };
+        }
+        // Get the most recent week
+        const recentWeekStart = new Date();
+        recentWeekStart.setDate(currentDate.getDate() - 7);
+        // Find how many of those first week attendees also attended in the most recent week
+        const stillAttendingIds = await Attendance_1.Attendance.distinct('contact_id', {
+            contact_id: { $in: firstWeekAttendees },
+            date: { $gte: recentWeekStart, $lte: currentDate },
+            attended: true
+        });
+        const stillAttendingCount = stillAttendingIds.length;
+        const dropOutCount = firstWeekAttendees.length - stillAttendingCount;
+        return {
+            stillAttending: {
+                count: stillAttendingCount,
+                percentage: (stillAttendingCount / firstWeekAttendees.length) * 100
+            },
+            dropOut: {
+                count: dropOutCount,
+                percentage: (dropOutCount / firstWeekAttendees.length) * 100
+            }
+        };
+    }
 }
 exports.ContactService = ContactService;
 exports.contactService = new ContactService();

@@ -141,6 +141,21 @@ class ContactController {
             res.status(500).json({ error: 'An unexpected error occurred' });
         }
     }
+    /**
+     * Get dashboard analytics data
+     * @param req - Express request object
+     * @param res - Express response object
+     */
+    async getDashboardAnalytics(req, res) {
+        try {
+            const analytics = await contactService_1.contactService.getDashboardAnalytics();
+            res.json(analytics);
+        }
+        catch (error) {
+            console.error('Dashboard analytics error:', error);
+            res.status(500).json({ error: 'Failed to retrieve dashboard analytics' });
+        }
+    }
 }
 exports.ContactController = ContactController;
 exports.contactController = new ContactController();

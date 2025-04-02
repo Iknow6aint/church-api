@@ -47,3 +47,41 @@ export interface UpdateContactInput {
   evangelist_name?: string;
   first_visit_date?: Date;
 }
+/**
+ * Interface for dashboard analytics data
+ */
+export interface DashboardAnalytics {
+  totalContacts: number;
+  attendedAtLeastOnce: {
+    count: number;
+    percentage: number;
+  };
+  stillAttending: {
+    count: number;
+    percentage: number;
+  };
+  weeklyAttendanceTrend: Array<{
+    week: number;
+    count: number;
+  }>;
+  genderDistribution: {
+    male: {
+      count: number;
+      percentage: number;
+    };
+    female: {
+      count: number;
+      percentage: number;
+    };
+  };
+  retentionBreakdown: {
+    stillAttending: {
+      count: number;
+      percentage: number;
+    };
+    dropOut: {
+      count: number;
+      percentage: number;
+    };
+  };
+}

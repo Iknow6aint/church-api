@@ -559,4 +559,104 @@ router.post('/search', contactController_1.contactController.searchContacts);
  *         description: Internal server error
  */
 router.post('/filter', contactController_1.contactController.filterContacts);
+/**
+ * @swagger
+ * /contacts/dashboard/analytics:
+ *   get:
+ *     summary: Get dashboard analytics data
+ *     description: Retrieves comprehensive analytics data for the admin dashboard including total contacts, attendance metrics, gender distribution, and retention
+ *     tags: [Contacts, Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard analytics data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalContacts:
+ *                   type: number
+ *                   description: Total number of contacts in the system
+ *                 attendedAtLeastOnce:
+ *                   type: object
+ *                   properties:
+ *                     count:
+ *                       type: number
+ *                       description: Number of contacts who attended at least once
+ *                     percentage:
+ *                       type: number
+ *                       description: Percentage of contacts who attended at least once
+ *                 stillAttending:
+ *                   type: object
+ *                   properties:
+ *                     count:
+ *                       type: number
+ *                       description: Number of contacts still attending (attended in the last 5 weeks)
+ *                     percentage:
+ *                       type: number
+ *                       description: Percentage of contacts still attending
+ *                 weeklyAttendanceTrend:
+ *                   type: array
+ *                   description: Weekly attendance data for the last 10 weeks
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       week:
+ *                         type: number
+ *                         description: Week number (1-10)
+ *                       count:
+ *                         type: number
+ *                         description: Number of attendees in this week
+ *                 genderDistribution:
+ *                   type: object
+ *                   properties:
+ *                     male:
+ *                       type: object
+ *                       properties:
+ *                         count:
+ *                           type: number
+ *                           description: Number of male contacts
+ *                         percentage:
+ *                           type: number
+ *                           description: Percentage of male contacts
+ *                     female:
+ *                       type: object
+ *                       properties:
+ *                         count:
+ *                           type: number
+ *                           description: Number of female contacts
+ *                         percentage:
+ *                           type: number
+ *                           description: Percentage of female contacts
+ *                 retentionBreakdown:
+ *                   type: object
+ *                   properties:
+ *                     stillAttending:
+ *                       type: object
+ *                       properties:
+ *                         count:
+ *                           type: number
+ *                           description: Number of contacts from 5 weeks ago who are still attending
+ *                         percentage:
+ *                           type: number
+ *                           description: Percentage of contacts from 5 weeks ago who are still attending
+ *                     dropOut:
+ *                       type: object
+ *                       properties:
+ *                         count:
+ *                           type: number
+ *                           description: Number of contacts from 5 weeks ago who have dropped out
+ *                         percentage:
+ *                           type: number
+ *                           description: Percentage of contacts from 5 weeks ago who have dropped out
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       403:
+ *         description: Forbidden - User does not have admin privileges
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/dashboard/analytics', contactController_1.contactController.getDashboardAnalytics);
 exports.default = router;
